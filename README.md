@@ -1,5 +1,9 @@
 # leCommit Hackathon Web App 🚀
 
+[![CI/CD Pipeline](https://github.com/HenryAllen04/vultrTesting/actions/workflows/deploy.yml/badge.svg)](https://github.com/HenryAllen04/vultrTesting/actions/workflows/deploy.yml)
+
+> **🧪 CI/CD Pipeline Testing**: This app includes automated testing, building, and deployment via GitHub Actions!
+
 A Node.js web application containerized with Docker and ready for deployment on Vultr Cloud.
 
 ## Features
@@ -9,6 +13,7 @@ A Node.js web application containerized with Docker and ready for deployment on 
 - **Docker Containerization** with multi-stage builds
 - **Production Ready** with security best practices
 - **Vultr Container Registry** integration
+- **🔄 Automated CI/CD** with GitHub Actions
 
 ## API Endpoints
 

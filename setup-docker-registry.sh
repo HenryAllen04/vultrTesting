@@ -19,7 +19,7 @@ cat > "$DOCKER_CONFIG_FILE" << EOF
 {
   "auths": {
     "$REGISTRY": {
-      "auth": "cm9ib3QkbGVjb21taXQxKzczOThkYWNkLThiMTUtNGFiNi04YTAzLTk2YTY3ODBmZWNmODphd0Z0RkdBcVNCRGZLeVltUGNOM1FyeXU4V2VLaHc5VQ=="
+      "auth": "cm9ib3QkbGVjb21taXQxK2FkOWYyY2Y0LTlmMWQtNDhmNS1iYTg0LWMzZmUxMzZkMzM1MjpJWncwV1N2QTdNTTVQZld3RXEzRld3M0lzZVRTa005VQ=="
     }
   }
 }
