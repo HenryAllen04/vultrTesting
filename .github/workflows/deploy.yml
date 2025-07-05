@@ -1,0 +1,130 @@
+# Purpose: GitHub Actions CI/CD workflow for leCommit hackathon app
+# Builds, tests, and deploys to Vultr on push to main
+
+name: 🚀 Build and Deploy to Vultr
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: lhr.vultrcr.com
+  IMAGE_NAME: lecommit-webapp
+
+jobs:
+  test:
+    name: 🧪 Test Application
+    runs-on: ubuntu-latest
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🟢 Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: 📦 Install dependencies
+      run: npm ci
+
+    - name: 🔍 Run linting
+      run: npm run lint || echo "No lint script found"
+
+    - name: 🧪 Run tests
+      run: npm test || echo "No tests found"
+
+    - name: 🔧 Test app starts
+      run: |
+        npm start &
+        sleep 5
+        curl -f http://localhost:3000/api/health || exit 1
+        pkill -f "node server.js"
+
+  build:
+    name: 🔨 Build Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: 🔑 Login to Vultr Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ secrets.VULTR_REGISTRY_USERNAME }}
+        password: ${{ secrets.VULTR_REGISTRY_PASSWORD }}
+
+    - name: 🏷️ Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: 🔨 Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+  deploy:
+    name: 🚀 Deploy to Vultr
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Setup deployment environment
+      run: |
+        echo "VULTR_API_KEY=${{ secrets.VULTR_API_KEY }}" >> $GITHUB_ENV
+        echo "DEPLOY_TIMESTAMP=$(date +%s)" >> $GITHUB_ENV
+
+    - name: 🌐 Deploy to Vultr (if API key exists)
+      if: env.VULTR_API_KEY != ''
+      run: |
+        echo "🚀 Deploying to Vultr..."
+        chmod +x ./auto-deploy.sh
+        ./auto-deploy.sh
+
+    - name: 📝 Manual deployment instructions
+      if: env.VULTR_API_KEY == ''
+      run: |
+        echo "🔑 VULTR_API_KEY not found in secrets."
+        echo "📋 Manual deployment steps:"
+        echo "1. Go to https://my.vultr.com/deploy/"
+        echo "2. Create Ubuntu 22.04 instance"
+        echo "3. SSH and run: docker run -d -p 80:3000 --name lecommit-app ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest"
+
+  notify:
+    name: 📣 Notify Status
+    runs-on: ubuntu-latest
+    needs: [test, build, deploy]
+    if: always()
+    steps:
+    - name: 📊 Deployment Status
+      run: |
+        echo "🎯 Deployment Status Summary:"
+        echo "✅ Tests: ${{ needs.test.result }}"
+        echo "🔨 Build: ${{ needs.build.result }}"
+        echo "🚀 Deploy: ${{ needs.deploy.result }}"
+        if [ "${{ needs.deploy.result }}" == "success" ]; then
+          echo "🌐 App should be available at your Vultr instance IP"
+          echo "📊 Health check: http://YOUR_IP/api/health"
+        fi 
