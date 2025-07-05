@@ -7,9 +7,10 @@ set -e
 
 # Configuration
 REGISTRY="lhr.vultrcr.com"
+REGISTRY_NAME="lecommit1"
 IMAGE_NAME="lecommit-webapp"
 TAG=${1:-latest}
-FULL_IMAGE_NAME="${REGISTRY}/${IMAGE_NAME}:${TAG}"
+FULL_IMAGE_NAME="${REGISTRY}/${REGISTRY_NAME}/${IMAGE_NAME}:${TAG}"
 
 echo "🚀 Starting deployment process for leCommit Hackathon App"
 echo "📦 Building image: ${FULL_IMAGE_NAME}"

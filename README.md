@@ -129,7 +129,7 @@ Create a `~/.docker/config.json` file with your Vultr registry credentials:
      -p 80:3000 \
      --name lecommit-app \
      --restart unless-stopped \
-     lhr.vultrcr.com/lecommit-webapp:latest
+     lhr.vultrcr.com/lecommit1/lecommit-webapp:latest
    ```
 
 6. **Access your app:**

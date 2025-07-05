@@ -139,7 +139,7 @@ docker run -d \
   -p 80:3000 \
   --name lecommit-app \
   --restart unless-stopped \
-  lhr.vultrcr.com/lecommit-webapp:latest
+  lhr.vultrcr.com/lecommit1/lecommit-webapp:latest
 
 echo "✅ Deployment complete!"
 echo "🌐 App available at: http://$(curl -s ifconfig.me)"

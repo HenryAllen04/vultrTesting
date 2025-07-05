@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: lecommit-webapp
-        image: lhr.vultrcr.com/lecommit-webapp:latest
+        image: lhr.vultrcr.com/lecommit1/lecommit-webapp:latest
         ports:
         - containerPort: 3000
         env:
