@@ -1,0 +1,88 @@
+# Purpose: Kubernetes deployment manifests for leCommit hackathon app on VKE
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lecommit-webapp
+  labels:
+    app: lecommit-webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: lecommit-webapp
+  template:
+    metadata:
+      labels:
+        app: lecommit-webapp
+    spec:
+      containers:
+      - name: lecommit-webapp
+        image: lhr.vultrcr.com/lecommit-webapp:latest
+        ports:
+        - containerPort: 3000
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      imagePullSecrets:
+      - name: vultr-registry-secret
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lecommit-webapp-service
+spec:
+  selector:
+    app: lecommit-webapp
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 3000
+  type: LoadBalancer
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: lecommit-webapp-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  tls:
+  - hosts:
+    - lecommit.yourdomain.com
+    secretName: lecommit-webapp-tls
+  rules:
+  - host: lecommit.yourdomain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: lecommit-webapp-service
+            port:
+              number: 80 
